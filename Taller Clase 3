@@ -2,41 +2,127 @@ EJERCICIOS
 
 1. Cree dos archivos de texto similares (con una o dos líneas diferentes). Compárelos empleando diff.
 
+PS> gc .\archivo1.txt
+Hola
+Este es el curo de Sistemas Operacionales.
+
+PS> gc .\archivo2.txt
+Hola
+Este es el taller de la clase 3 de Powershell.
+
+PS> diff -ReferenceObject .\archivo1.txt -DifferenceObject .\archivo2.txt
+
+InputObject    SideIndicator
+-----------    -------------
+.\archivo2.txt =>           
+.\archivo1.txt <=           
+
+*--
+
+
 2. Qué ocurre si se ejecuta:
 get-service | export-csv servicios.csv | out-file
 Por qué?
 
+PS> get-service | export-csv servicios.csv | out-file
+out-file : No se puede procesar el argumento porque el valor del argumento "path" es NULL. Cambie el valor del 
+argumento "path" a un valor no nulo.
+En línea: 1 Carácter: 42
++ get-service | export-csv servicios.csv | out-file
++                                          ~~~~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Out-File], PSArgumentNullException
+    + FullyQualifiedErrorId : ArgumentNull,Microsoft.PowerShell.Commands.OutFileCommand
+ 
+*--
+
+
 3. Cómo haría para crear un archivo delimitado por puntos y comas (;)?
 PISTA: Se emplea export-csv, pero con un parámetro adicional.
+
+R./ Utilizando el parámetro Delimiter de Export-Csv. Por ejemplo:
+PS> Get-Service | Export-Csv servicios.csv -Delimiter ";"
+
+
 
 4. Export-cliXML y Export-CSV modifican el sistema, porque pueden crear y sobreescribir archivos.
 Existe algún parámetro que evite la sobreescritura de un archivo existente? Existe algún parámetro
 que permita que el comando pregunte antes de sobresscribir un archivo?
 
+R./ Sí. Para evitar la sobreescritura de un archivo existente se puede utilizar el parámetro NoClobber.
+Por ejemplo: PS> Get-Service | Export-Csv servicios.csv -Delimiter ";" -NoClobber
+
+Para que e comando pregunte antes de sobreescribir un archivo se utiliza el parámetro Confirm.
+Por ejemplo: PS> Get-Service | Export-Csv servicios.csv -Delimiter ";" -Confirm
+
+
+
 5. Windows emplea configuraciones regionales, lo que incluye el separador de listas. En Windows en inglés,
 el separador de listas es la coma (,). Cómo se le dice a Export-CSV que emplee el separador del sistema en lugar de la coma?
 
+R./Se debe utilizar el parámetro UseCulture. Por ejemplo:
+PS> Get-Service | Export-Csv servicios.csv -UseCulture
+
+Para saber cuél es el separador del sistema se puede utilizar el siguiente comando:
+PS> (Get-Culture).TextInfo.ListSeparator
+
+
+
 6. Identifique un cmdlet que permita generar un número aleatorio.
+
+R./ El cdmlet que permite generar un número aleatorio es Get-Random. Entre sus parámetros están 
+Maximum y Minimum, que sirven para definir el rango en el que el número aleatorio debe estar.
+Por ejemplo:
+PS> get-random -Minimum 1 -Maximum 100
+96
+
+
 
 7. Identifique un cmdlet que despliegue la fecha y hora actuales.
 
+R./ El cmdlet que despliega la fecha y hora actuales es Get-Date. 
+
+
+
 8. Qué tipo de objeto produce el cmdlet de la pregunta 7?
+
+R./ El cdmlet Get-Date produce un objeto de tipo DateTime:
+PS> Get-Date | Get-Member
+      TypeName: System.DateTime
+
 
 9. Usando el cmdlet de la pregunta 7 y select-object, despliegue solamente el día de la semana, así:
    DayOfWeek
    ---------
     Thursday
+    
+R./ PS> Get-Date | select DayOfWeek
+
+   DayOfWeek
+   ---------
+    Saturday
+
 
 10. Identifique un cmdlet que muestre información acerca de parches (hotfixes) instalados en el sistema.
+
+R./ El cdmlet que muestra información sobre los parches instalados en el sistema es Get-HotFix.
+
+
 
 11. Empleando el cmdlet de la pregunta 10, muestre una lista de parches instalados. Luego extienda la expresión
 para ordenar la lista por fecha de instalación, y muestre en pantalla únicamente la fecha de instalación,
 el usuario que instaló el parche, y el ID del parche. Recuerde examinar los nombres de las propiedades.
 
+R./ PS> Get-HotFix | sort InstallDate | select InstallDate, InstalledBy, HotFixId
+
+
 12. Complemente la solución a la pregunta 11, para que el sistema ordene los resultados por la descripción del parche,
 e incluya en el listado la descripción, el ID del parche, y la fecha de instalación. Escriba los resultados a un archivo HTML.
+
+R./ PS> Get-HotFix | sort Description | select Description, HotFixId, InstalledBy | ConvertTo-Html | Out-File hotfixes.html
+
 
 13. Muestre una lista de las 50 entradas más nuevas del log de eventos System. Ordene la lista de modo que las entradas
 más antiguas aparezcan primero; las entradas producidas al mismo tiempo deben ordenarse por número índice. Muestre el
 número índice, la hora y la fuente para cada entrada. Escriba esta información en un archivo de texto plano.
 
+R./ PS> Get-EventLog -LogName System -Newest 50 | sort TimeGenerated, Index | select Index, TimeGenerated, Source | Out-File newestEventLogs.txt
